@@ -9,6 +9,7 @@ public class Product {
 
 
     @Id
+    @Column(name = "product_id")
     private Long id;
 
 

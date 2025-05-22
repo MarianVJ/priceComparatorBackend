@@ -17,6 +17,7 @@ public class StoreDateBatch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "store_date_batch_id")
     private Long id;
 
     @ManyToOne
