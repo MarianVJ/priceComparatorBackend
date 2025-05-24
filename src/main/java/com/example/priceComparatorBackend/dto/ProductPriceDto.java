@@ -3,22 +3,22 @@ package com.example.priceComparatorBackend.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class ProductPriceDTO {
+public class ProductPriceDto {
     private String name;
     private double price;
 
     @JsonIgnore
     private String store; // can be null
 
-    public ProductPriceDTO() {}
+    public ProductPriceDto() {}
 
-    public ProductPriceDTO(String name, double price, String store) {
+    public ProductPriceDto(String name, double price, String store) {
         this.name = name;
         this.price = price;
         this.store = store;
     }
 
-    public ProductPriceDTO(String name, double price) {
+    public ProductPriceDto(String name, double price) {
         this.name = name;
         this.price = price;
     }

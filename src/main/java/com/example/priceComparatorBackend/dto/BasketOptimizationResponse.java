@@ -7,7 +7,7 @@ import java.util.Map;
 public class BasketOptimizationResponse {
 
     // The Shop and the List of products of that shop
-    private Map<String, List<ProductPriceDTO>> recommendedShopping;
+    private Map<String, List<ProductPriceDto>> recommendedShopping;
     private Map<String, Double> storeTotals;
     private double basketTotal;
 
@@ -17,7 +17,7 @@ public class BasketOptimizationResponse {
 
     public BasketOptimizationResponse() {}
 
-    public BasketOptimizationResponse(Map<String, List<ProductPriceDTO>> recommendedShopping,
+    public BasketOptimizationResponse(Map<String, List<ProductPriceDto>> recommendedShopping,
                                       Map<String, Double> storeTotals,
                                       double basketTotal,
                                       List<String> notes) {
@@ -27,11 +27,11 @@ public class BasketOptimizationResponse {
         this.notes = notes;
     }
 
-    public Map<String, List<ProductPriceDTO>> getRecommendedShopping() {
+    public Map<String, List<ProductPriceDto>> getRecommendedShopping() {
         return recommendedShopping;
     }
 
-    public void setRecommendedShopping(Map<String, List<ProductPriceDTO>> recommendedShopping) {
+    public void setRecommendedShopping(Map<String, List<ProductPriceDto>> recommendedShopping) {
         this.recommendedShopping = recommendedShopping;
     }
 

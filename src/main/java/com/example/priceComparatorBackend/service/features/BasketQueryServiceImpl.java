@@ -4,7 +4,7 @@ package com.example.priceComparatorBackend.service.features;
 import com.example.priceComparatorBackend.dao.features.BasketQueryRepository;
 import com.example.priceComparatorBackend.dto.BasketOptimizationRequest;
 import com.example.priceComparatorBackend.dto.BasketOptimizationResponse;
-import com.example.priceComparatorBackend.dto.ProductPriceDTO;
+import com.example.priceComparatorBackend.dto.ProductPriceDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,16 +41,16 @@ public class BasketQueryServiceImpl implements BasketQueryService {
         // Search for the products with the lowest price across all markets
         // for the given date provided in the request.
 
-        List<ProductPriceDTO> pdList =
+        List<ProductPriceDto> pdList =
                 basketQueryRepository.findCheapestProductsByStore(
                         request.getProducts(), request.getDate());
 
-        Map<String, List<ProductPriceDTO>> shopping = new HashMap<>();
+        Map<String, List<ProductPriceDto>> shopping = new HashMap<>();
         Map<String, Double> totals = new HashMap<>();
         double basketTotal = 0;
 
         String storeBuffer;
-        for (ProductPriceDTO p : pdList) {
+        for (ProductPriceDto p : pdList) {
             // Each p is added to the list for the actual store, but we do
             // not want to display the name of the store for each item
             storeBuffer = new String(p.getStore());

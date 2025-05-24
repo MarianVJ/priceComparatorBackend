@@ -32,11 +32,11 @@ public class StoreDateBatchProduct {
         this.currency = currency;
     }
 
-    public StoreDateBatch getStore() {
+    public StoreDateBatch getStoreDateBatch() {
         return storeDateBatch;
     }
 
-    public void setStore(StoreDateBatch storeDateBatch) {
+    public void setStoreDateBatch(StoreDateBatch storeDateBatch) {
         this.storeDateBatch = storeDateBatch;
     }
 

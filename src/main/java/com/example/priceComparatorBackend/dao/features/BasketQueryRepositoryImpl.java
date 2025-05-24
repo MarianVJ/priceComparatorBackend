@@ -1,6 +1,6 @@
 package com.example.priceComparatorBackend.dao.features;
 
-import com.example.priceComparatorBackend.dto.ProductPriceDTO;
+import com.example.priceComparatorBackend.dto.ProductPriceDto;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -20,7 +20,7 @@ public class BasketQueryRepositoryImpl implements BasketQueryRepository {
         this.entityManager = entityManager;
     }
 
-    public List<ProductPriceDTO> findCheapestProductsByStore(
+    public List<ProductPriceDto> findCheapestProductsByStore(
             List<String> productNames,
             LocalDate shoppingDate) {
         String sql = """
@@ -31,7 +31,10 @@ public class BasketQueryRepositoryImpl implements BasketQueryRepository {
                     SELECT p.name AS product_name,
                            s.name AS store_name,
                            ROUND(sdp.price * (1 - COALESCE(sdpd.percentage_of_discount, 0) / 100), 2) AS final_price,
-                           ROW_NUMBER() OVER (PARTITION BY p.name ORDER BY ROUND(sdp.price * (1 - COALESCE(sdpd.percentage_of_discount, 0) / 100), 2) ASC) AS row_num
+                           ROW_NUMBER() OVER (
+                               PARTITION BY p.name
+                               ORDER BY ROUND(sdp.price * (1 - COALESCE(sdpd.percentage_of_discount, 0) / 100), 2) ASC
+                           ) AS row_num
                     FROM store_date_batch_product sdp
                     JOIN store_date_batch sdb ON sdb.store_date_batch_id = sdp.store_date_batch_id
                     JOIN store s ON s.store_id = sdb.store_id
@@ -46,11 +49,11 @@ public class BasketQueryRepositoryImpl implements BasketQueryRepository {
                           SELECT MAX(sdb2.batch_date)
                           FROM store_date_batch sdb2
                           WHERE sdb2.store_id = s.store_id
-                            AND sdb2.batch_date <= :date
+                            AND sdb2.batch_date <= sddb.from_date
                       )
                 ) AS ranked_products
                 WHERE row_num = 1
-                ORDER BY product_name ASC               
+                ORDER BY product_name ASC              
                 """;
 
         List<Object[]> results = entityManager.createNativeQuery(sql)
@@ -59,7 +62,7 @@ public class BasketQueryRepositoryImpl implements BasketQueryRepository {
                 .getResultList();
 
         return results.stream()
-                .map(row -> new ProductPriceDTO(
+                .map(row -> new ProductPriceDto(
                         (String) row[0], // product_name
                         ((Number) row[2]).doubleValue(), // final_price
                         (String) row[1] // store_name

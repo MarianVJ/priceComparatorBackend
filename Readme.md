@@ -53,7 +53,7 @@ Stores product information:
 
 #### 2. `brand`
 Contains a fixed list of shops:
-- `id` (PK)
+- `brand_id` (PK)
 - `name` (e.g., Lidl, Pilos, Zuzu etc.)
 
 
@@ -62,21 +62,21 @@ Contains a fixed list of shops:
 
 #### 3. `category`
 Stores product category labels:
-- `id` (PK)
+- `category_id` (PK)
 - `name` (e.g., Lactate, Panificatie, Carne, etc.)
 
 ---
 
 #### 4. `store`
 Stores product category labels:
-- `id` (PK)
+- `store_id` (PK)
 - `name` (e.g., Lidl, Kaufland, Profi  etc.)
   **Initial entries:** 3 shops
 ---
 
 #### 5. `store_date_batch`
 Stores product category labels:
-- `id` (PK)
+- `store_date_batch_id` (PK)
 - `store_id` (references `store`)
 - `batch_date` (e.g. `2025-05-01`)
 - UNIQUE(store_id, batch_date)
@@ -84,8 +84,8 @@ Stores product category labels:
 
 #### 6. `store_date_batch_product`
 Stores product category labels:
-- `id` (PK)
-- `store_product_batch_id ` (references `store_date_batch`)
+- `store_date_batch_product_id` (PK)
+- `store_date_batch_id ` (references table no. 5 - `store_date_batch`)
 - `product_id` (references `product`)
 - `price`
 - `currency`
@@ -93,7 +93,7 @@ Stores product category labels:
 
 #### 7. `store_discount_date_batch`
 Stores product category labels:
-- `id` (PK)
+- `store_discount_date_batch_id` (PK)
 - `store_id ` (references `store`)
 - `from_date` (e.g. `2025-05-01`)
 - `to_date` (e.g. `2025-05-08`)
@@ -102,7 +102,7 @@ Stores product category labels:
 
 #### 8. `store_discount_date_batch_product`
 Stores product category labels:
-- `id` (PK)
+- `store_discount_date_batch_product_id` (PK)
 - `store_discount_date_batch_id ` (references `store_discount_date_batch`)
 - `product_id` (references `product`)
 - `percentage_of_discount`
@@ -139,6 +139,11 @@ src/
 
 
 The `test` folder mirrors the structure of the `src` folder to ensure clear separation between implementation and testing. Each component has corresponding tests in the `test` folder, organized as follows:
+
+The `/test/controller` folder contains integration tests that build the full application and interact with the **real database**.  
+Ensure the database is properly configured and accessible before running these tests.
+
+
 ```declarative
 src/
 └── test/
@@ -159,6 +164,9 @@ src/
     └── entity/
         └── ProductTest.java                        # Teste unitare pentru entitatea Product (dacă e necesar)
 ```
+
+
+
 ## 2. Build and Run Application
 ## 2.1 Requirements
 - **Java 17** installed and configured in your system.
@@ -175,6 +183,7 @@ src/
 - For simplicity, the service assumes that the products sent in the request are written exactly as they appear in the database.
   For example, "lapte zuzu" must match the product name exactly.
   In a real application, users will select products from predefined lists, so this limitation does not affect the final user experience.
+- The currency is not specified in most of the functionalities, considering that all the data is currently in RON
 
 
 **Mention**: These assumptions were made because I focused on implementing the core functionalities and did not test every edge case due to the limited 2-week development time.
@@ -207,6 +216,32 @@ This will start the Spring Boot application. By default, it should be accessible
 ### 4.4 Features
 
 Each feature has its own classes for Controller, Service, and Repository. This decision was made considering the possibility of extending the features with more complex or additional functionality.
+
+#### Detail
+
+A product can have different prices based on date_batch
+For example. For a store:
+
+- It can have a price on `2025-05-01` - Price_1
+- It can have a price on `2025-05-08` - Price_2
+
+- It can have a discount that is in period `2025-05-02 - 2025-05-07` , with discount_percentege_1
+- It can have a discount that is in period `2025-05-11 - 2025-05-13`, with discount_percentege_2
+
+For this example , there will be  5 prices based on time:
+1. on 2025-05-01 - Price_1
+2. on 2025-05-03 - Price_1 but reduced with discount_percentege_1
+3. on 2025-05-08 - Price_2
+4. on 2025-05-11 - Price_2 but reduced with discount_percentege_2
+
+⚠️**All implemented features and the entire backend are based on this logic.**
+
+
+
+
+
+
+
 ### 4.4.1 Daily Shopping Basket Monitoring
 
 Help users split their basket into shopping lists that optimise for cost savings.
@@ -266,7 +301,443 @@ Request body:
 
 The following components are used in the backend implementation, each located in their respective package:
 
-- `rest/ProductController` – processes the requests for the `rest/basket-optimizer/optimize` endpoint.
-- `service/ProductService` – applies the business logic (how the `BasketOptimizationResponse` is built).
-- `dao/ProductRepository` – accesses the database and performs the query using native SQL syntax for operation optimization (uses a query with `ROW_NUMBER()`).
+- `rest/BasketOptimizerController` – processes the requests for the `rest/basket-optimizer/optimize` endpoint.
+- `service/features/BasketQueryService` – applies the business logic (how the `BasketOptimizationResponse` is built).
+- `dao/features/BasketQueryRepository` – accesses the database and performs the query using native SQL syntax for operation optimization (uses a query with `ROW_NUMBER()`).
 - `dto/ProductDTO` – used for sending data in the response (smallest building block).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 4.4.2 Best Discounts:
+
+List products with the highest current percentage discounts across all tracked
+stores.
+
+
+
+
+#### Feature Detail
+
+The feature allows querying the best available discounts for a specific date, which can be provided in the request body.
+By default, it returns the top 10 highest discounts available on that date
+
+**Request Example:**  
+`POST http://localhost:8080/rest/best-discounts/on-date`
+
+Request body:
+```json
+{
+  "date": "2025-05-09"
+}
+```
+
+
+
+*Response Example:*
+```json
+[
+  {
+    "name": "spaghetti nr.5",
+    "discount": 20.0,
+    "brand": "Barilla",
+    "store": "lidl",
+    "currency": "RON",
+    "price_without_discount": 5.7
+  },
+  {
+    "name": "detergent lichid",
+    "discount": 20.0,
+    "brand": "Persil",
+    "store": "lidl",
+    "currency": "RON",
+    "price_without_discount": 49.5
+  },
+  {
+    "name": "spaghetti nr.5",
+    "discount": 18.0,
+    "brand": "Barilla",
+    "store": "kaufland",
+    "currency": "RON",
+    "price_without_discount": 5.85
+  },
+  {
+    "name": "detergent lichid",
+    "discount": 18.0,
+    "brand": "Dero",
+    "store": "profi",
+    "currency": "RON",
+    "price_without_discount": 48.9
+  },
+..........
+]
+```
+
+*Response Example:*
+```json
+[
+  {
+    "name": "spaghetti nr.5",
+    "discount": 20.0,
+    "brand": "Barilla",
+    "store": "lidl",
+    "currency": "RON",
+    "price_without_discount": 5.7
+  },
+  {
+    "name": "detergent lichid",
+    "discount": 20.0,
+    "brand": "Persil",
+    "store": "lidl",
+    "currency": "RON",
+    "price_without_discount": 49.5
+  },
+  {
+    "name": "spaghetti nr.5",
+    "discount": 18.0,
+    "brand": "Barilla",
+    "store": "kaufland",
+    "currency": "RON",
+    "price_without_discount": 5.85
+  },
+  {
+    "name": "detergent lichid",
+    "discount": 18.0,
+    "brand": "Dero",
+    "store": "profi",
+    "currency": "RON",
+    "price_without_discount": 48.9
+  },
+..........
+]
+```
+
+#### Implementation Details
+
+The following components are used in the backend implementation, each located in their respective package:
+
+- `rest/BestPercentageDiscountsController` – processes the requests for the `/rest/best-discounts/on-date` endpoint.
+- `service/features/BestPercentageDiscountsService` – applies the business logic 
+- `dao/features/BestPercentageDiscountsRepository` – accesses the database and performs the query using native SQL syntax for operation optimization
+  - When multiple discounts apply on the queried date, the discount that began most recently overrides the others.
+- `dto/ProductDiscountPercentageDto` – used for sending data in the response (smallest building block).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 4.4.3 New Discounts:
+
+List discounts that have been newly added (e.g., within the last 24 hours).
+
+**Request Example:**  
+`POST http://localhost:8080/rest/latest-discounts/on-date`
+
+Request body:
+```json
+{
+  "date": "2025-05-09"
+}
+```
+
+*Response Example:*
+```json
+[
+  {
+    "name": "lapte zuzu",
+    "discount": 9.0,
+    "brand": "Zuzu",
+    "store": "kaufland",
+    "currency": "RON",
+    "price_without_discount": 10.0
+  },
+  {
+    "name": "ouă mărimea M",
+    "discount": 11.0,
+    "brand": "Ferma Veche",
+    "store": "kaufland",
+    "currency": "RON",
+    "price_without_discount": 13.6
+  },
+  {
+    "name": "ulei floarea-soarelui",
+    "discount": 8.0,
+    "brand": "Floriol",
+    "store": "kaufland",
+    "currency": "RON",
+    "price_without_discount": 9.6
+  },
+  {
+    "name": "hârtie igienică 3 straturi",
+    "discount": 13.0,
+    "brand": "Pufina",
+    "store": "kaufland",
+    "currency": "RON",
+    "price_without_discount": 19.3
+  },
+  {
+..........
+]
+```
+
+#### Implementation Details
+
+The following components are used in the backend implementation, each located in their respective package:
+
+- `rest/LatestDiscountsController` – processes the requests for the `/rest/latest-discounts/on-date` endpoint.
+- `service/features/LatestDiscountsService` – applies the business logic
+- `dao/features/LatestDiscountsRepository` – accesses the database and performs the query using native SQL syntax for operation optimization
+    - The query searches for the discounts that has the value for from_date equal to provided date , or that is the previous dat
+
+- `dto/ProductDiscountPercentageDto` – used for sending data in the response (smallest building block).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 4.4.4 Dynamic Price History Graphs:
+- Provide data points that would allow a frontend to calculate and display price
+trends over time for individual products.
+
+- This data should be filterable by product category, or brand.
+
+  (The same steps and pattern is for the /brand/{brandName})
+
+
+*Request Example 1:*  
+- Template: `GET http://localhost:8080/rest/dynamic-price-history/category/{categoryName}`
+
+- Effective: `GET http://localhost:8080/rest/dynamic-price-history/category/lactate`
+
+
+*Response Example:*
+```json
+[
+  {
+    "productName": "brânză telemea",
+    "productBrand": "Hochland",
+    "store": "kaufland",
+    "dataPoints": [
+      {
+        "date": "2025-05-01",
+        "price": 11.79
+      },
+      {
+        "date": "2025-05-08",
+        "price": 13.0
+      }
+    ]
+  },
+  {
+    "productName": "brânză telemea",
+    "productBrand": "Pilos",
+    "store": "lidl",
+    "dataPoints": [
+      {
+        "date": "2025-05-01",
+        "price": 10.88
+      },
+      {
+        "date": "2025-05-08",
+        "price": 11.61
+      },
+      {
+        "date": "2025-05-15",
+        "price": 12.9
+      }
+    ]
+  },
+  {
+    "productName": "brânză telemea",
+    "productBrand": "Pilos",
+    "store": "profi",
+    "dataPoints": [
+      {
+        "date": "2025-05-01",
+        "price": 12.8
+      }
+    ]
+  },
+..........
+]
+```
+
+#### Implementation Details
+
+The following components are used in the backend implementation, each located in their respective package:
+
+- `rest/DynamicPriceHistoryController` – processes the requests for the `/rest/latest-discounts/on-date` endpoint.
+- `service/features/dynamicPriceHistoryRepository` – applies the business logic
+- `dao/features/getDynamicPriceHistoryRepositoryByCategory` – accesses the database and performs the query using native SQL syntax for operation optimization
+  - The same logic applies as described in the database model: a product retains the price from its most recent `batch_date` up to the current date.
+  - If a discount is active, the price is adjusted based on the most recent batch available at the start of the discount period, reflecting the product’s price evolution over time.
+- `dto/ProductPriceHistoryDto` – used for sending data in the response (smallest building block).
+
+
+
+
+
+### 4.4.5 Best Product Deals ( Product Substitutes & Recommendations ):
+
+Highlight "value per unit" (e.g., price per kg, price per liter) to help identify the
+best buys, even if the pack size differs
+
+
+#### Usage
+
+**Request Example:**  
+`GET http://localhost:8080/rest/best-deals/on-date`
+
+Request body:
+```json
+{
+  "date": "2025-05-09"
+}
+```
+
+*Response Example:*
+```json
+[
+  {
+    "name": "ouă mărimea M",
+    "brand": "Din Ogradă",
+    "store": "profi",
+    "packageQuantity": 10.0,
+    "packageUnit": "buc",
+    "valuePerUnit": 1.125,
+    "currency": "RON",
+    "final_price": 11.25
+  },
+  {
+    "name": "ouă mărimea M",
+    "brand": "Ferma Veche",
+    "store": "kaufland",
+    "packageQuantity": 10.0,
+    "packageUnit": "buc",
+    "valuePerUnit": 1.2104,
+    "currency": "RON",
+    "final_price": 12.1
+  },
+  {
+    "name": "ouă mărimea M",
+    "brand": "Lidl",
+    "store": "profi",
+    "packageQuantity": 10.0,
+    "packageUnit": "buc",
+    "valuePerUnit": 1.22,
+    "currency": "RON",
+    "final_price": 12.2
+  },
+  {
+    "name": "ouă mărimea M",
+    "brand": "Lidl",
+    "store": "profi",
+    "packageQuantity": 10.0,
+    "packageUnit": "buc",
+    "valuePerUnit": 1.22,
+    "currency": "RON",
+    "final_price": 12.2
+  },
+..........
+]
+```
+
+
+
+#### Implementation Details
+
+The following components are used in the backend implementation, each located in their respective package:
+
+- `rest/BestBuysPerUnitController` – processes the requests for the `/rest/best-deals/on-date` endpoint.
+- `service/features/BestBuysPerUnitService` – applies the business logic
+- `dao/features/BestBuysPerUnitRepository` – accesses the database and performs the query using native SQL syntax for operation optimization
+    - The query:
+      - - Applies the **discount** available at the provided date, if applicable.
+        - **Converts units** for consistency:
+          - Products measured in **ml** are converted to **liters (l)**.
+          - Products measured in **mg** are converted to **kilograms (kg)**.
+- `dto/BestDealsProductDto` – used for sending data in the response (smallest building block).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 4.4.6 Custom Price Alert :
+
+Allow users to set a target price for a product. The system should be able to
+identify when a product's price drops to or below that target
+
+
+#### Usage
+
+**Request Example:**  
+`GET http://localhost:8080/rest/set-price-alert/on-product`
+
+Request body:
+```json
+{
+  "date": "cartofi albi",
+  "price": 13
+}
+```
+
+
+
+
+
+
+
+## Future Improvements ()
+
+- Refactor the duplicated code from class. DynamicPriceHistoryRepositoryImpl. The each of the 2 queryes has almost the same logic, id varies just the way data is filtered by category or by brand.
+
+- Write more unit tests.
+
+- Possible there would be a way for redesgning/refactor the way data is stored , the tables design- in order to have less verbouse queries - with the trade-off for a little bit more memory usage
+
+- Extend the database for better variety of products , shops and period of time. 
