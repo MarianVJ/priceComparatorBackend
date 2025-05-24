@@ -716,16 +716,34 @@ identify when a product's price drops to or below that target
 #### Usage
 
 **Request Example:**  
-`GET http://localhost:8080/rest/set-price-alert/on-product`
+`POST http://localhost:8080/rest/configure-price-alert/on-product`
 
 Request body:
 ```json
 {
-  "date": "cartofi albi",
-  "price": 13
+  "productName": "cartofi albi",
+  "productBrand": "Generic",
+  "targetPrice": 2.5,
+  "email": "jorascuvlad@gmail.com"
 }
 ```
 
+
+#### Implementation Details
+
+The following components are used in the backend implementation, each located in their respective package:
+
+- `rest/CustomPriceAlertController` – processes the requests for the `/rest/best-deals/on-date` endpoint.
+- `service/features/BestBuysPerUnitService` – applies the business logic
+- `dao/features/BestBuysPerUnitRepository` – accesses the database and performs the query using native SQL syntax for operation optimization
+
+
+- `PriceAlertSchedulerService` - a service that runs the business logic periodically (every 5 minutes or once per day). It checks if any price alert conditions are met, and if so, notifies the user via email.
+- `EmailService` - a service for sending the email for PriceAlarm
+
+
+- `dto/PriceAlertRequestDto ` – DTO used for deserializing request payloads
+- `entity/PriceAlert` - Entity class used for storing in database the details about the price alert
 
 
 
