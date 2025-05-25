@@ -1,8 +1,6 @@
 package com.example.priceComparatorBackend.dao.database;
 
-
 import com.example.priceComparatorBackend.entity.Brand;
-import com.example.priceComparatorBackend.dao.database.BrandRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +14,12 @@ import static org.assertj.core.api.Assertions.*;
 @DataJpaTest
 public class BrandRepositoryTest {
 
+    private final BrandRepository brandRepository;
+
     @Autowired
-    private BrandRepository brandRepository;
+    public BrandRepositoryTest(BrandRepository brandRepository) {
+        this.brandRepository = brandRepository;
+    }
 
     private Brand brand;
 
@@ -37,9 +39,7 @@ public class BrandRepositoryTest {
     @Test
     public void testFindByName() {
         brandRepository.save(brand);
-
         Optional<Brand> found = brandRepository.findByName("Agricola");
-
         assertThat(found).isPresent();
         assertThat(found.get().getName()).isEqualTo("Agricola");
     }
@@ -48,7 +48,6 @@ public class BrandRepositoryTest {
     public void testDeleteBrand() {
         Brand saved = brandRepository.save(brand);
         brandRepository.delete(saved);
-
         Optional<Brand> deleted = brandRepository.findById(saved.getId());
         assertThat(deleted).isEmpty();
     }
@@ -57,7 +56,6 @@ public class BrandRepositoryTest {
     public void testUniqueNameConstraint() {
         brandRepository.save(brand);
         Brand duplicate = new Brand("Agricola");
-
         assertThatThrownBy(() -> brandRepository.saveAndFlush(duplicate))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }

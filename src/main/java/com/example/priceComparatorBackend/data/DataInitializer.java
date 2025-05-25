@@ -259,12 +259,6 @@ public class DataInitializer implements CommandLineRunner {
                         product, price, currency);
 
 
-        System.out.println(
-                "Product ID: " + productId + ", Name: " + productName +
-                        ", Price: " + price + " " + currency + ", Category: " +
-                        productCategory + ", Brand: " + brandName +
-                        ", Package: " +
-                        packageQuantity + " " + packageUnit);
     }
 
 

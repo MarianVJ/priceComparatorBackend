@@ -1,20 +1,14 @@
 package com.example.priceComparatorBackend.rest;
 
-import com.example.priceComparatorBackend.dto.DateRequestDto;
 import com.example.priceComparatorBackend.dto.PriceAlertRequestDto;
-import com.example.priceComparatorBackend.dto.ProductDiscountPercentageDto;
 import com.example.priceComparatorBackend.service.features.CustomPriceAlertService;
-import com.example.priceComparatorBackend.service.features.LatestDiscountsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.time.LocalDate;
-import java.util.List;
 
 @Controller
 @RequestMapping("/rest/configure-price-alert")
@@ -37,9 +31,9 @@ public class CustomPriceAlertController {
 
         System.out.println(request.getEmail());
 
-        if(customPriceAlertService.saveAlert(request)) {
+        if (customPriceAlertService.saveAlert(request)) {
             return ResponseEntity.ok("Alertă salvată cu succes!");
-        } else{
+        } else {
             return ResponseEntity.internalServerError().build();
         }
 

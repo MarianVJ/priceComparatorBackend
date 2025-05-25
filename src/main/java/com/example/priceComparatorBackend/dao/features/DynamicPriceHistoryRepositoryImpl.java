@@ -30,6 +30,12 @@ public class DynamicPriceHistoryRepositoryImpl
     @Override
     public List<ProductPriceHistoryDto> getDynamicPriceHistoryRepositoryByCategory(
             String category) {
+        // This query is used to retrieve all products from a specific CATEGORY.
+        // Based on the date of their first batch, it computes the price evolution over time.
+        // If a discount exists, the price will be reduced accordingly,
+        // using the price from the latest available product batch at that time.
+        // After the discount expires, the price will return to its initial value,
+        // taken from the most recent active batch.
         String sql = """
                 WITH discounted_dates AS (
                     SELECT 
@@ -213,6 +219,13 @@ public class DynamicPriceHistoryRepositoryImpl
     @Override
     public List<ProductPriceHistoryDto> getDynamicPriceHistoryRepositoryByBrand(
             String brand) {
+
+        // This query is used to retrieve all products from a specific BRAND.
+        // Based on the date of their first batch, it computes the price evolution over time.
+        // If a discount exists, the price will be reduced accordingly,
+        // using the price from the latest available product batch at that time.
+        // After the discount expires, the price will return to its initial value,
+        // taken from the most recent active batch.
         String sql = """
                 WITH discounted_dates AS (
                     SELECT 

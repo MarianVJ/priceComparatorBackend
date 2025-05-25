@@ -24,6 +24,7 @@ effectively.
 
 ### 1.2. Application Architecture
 ![alt text](./docs/APPLICATION_ARCHITECTURE.jpg)
+Every feature of the backend uses this data processing pipeline, and this image is just a theoretical representation.
 This diagram shows the main layers of the backend application:
 - REST Controller exposes API endpoints
 - Service layer contains business logic
@@ -107,10 +108,17 @@ Stores product category labels:
 - `product_id` (references `product`)
 - `percentage_of_discount`
 
+#### 9. `price_alert`
+Stores product category labels:
+- `id` (PK)
+- `product_id ` (references `product`)
+- `target_price` 
+- `email`
+
 ---
 ### Schema Diagram
 
-![Database Schema](./docs/DATABASE_SCHEMA.png)
+![alt text](./docs/database_diagram.png)
 
 ### 1.3 Structure of Folders
 
@@ -148,21 +156,21 @@ Ensure the database is properly configured and accessible before running these t
 src/
 └── test/
     ├── controller/
-    │   └── BasketOptimizerControllerTest.java      # Teste pentru endpointul BasketOptimizerController (teste de integrare)
+    │   └── BasketOptimizerControllerTest.java      # Integration tests for endpoint that is managed by BasketOptimizerController 
     ├── service/
     │   ├── database/
-    │   │   └── ProductServiceTest.java             # Teste unitare pentru ProductService
+    │   │   └── ProductServiceTest.java             # Unit tests for ProductService
     │   └── feature/
-    │       └── BasketQueryServiceTest.java         # Teste unitare pentru BasketQueryService
+    │       └── BasketQueryServiceTest.java         # Unit tests for  BasketQueryService
     ├── dao/
     │   ├── database/
-    │   │   └── ProductRepositoryTest.java          # Teste unitare pentru ProductRepository
+    │   │   └── ProductRepositoryTest.java          # Unit tests for ProductRepository
     │   └── features/
-    │       └── BasketOptimizerRepositoryTest.java  # Teste unitare pentru BasketOptimizerRepository
+    │       └── BasketOptimizerRepositoryTest.java  # Unit tests for BasketOptimizerRepository
     ├── dto/
-    │   └── ProductPriceDTOTest.java                # Teste unitare pentru ProductPriceDTO (dacă e cazul)
+    │   └── ProductPriceDTOTest.java                # Unit tests for ProductPriceDTO 
     └── entity/
-        └── ProductTest.java                        # Teste unitare pentru entitatea Product (dacă e necesar)
+        └── ProductTest.java                        # Unit tests for entity - Product 
 ```
 
 
@@ -176,7 +184,7 @@ src/
     - **Password**: `springstudent`
 - A database named **PRODUCT_DATABASE** must exist before running the application.  
   This is where all tables and data will be created and stored.
-
+- You need to update the `application.properties` file with your own email address and app-specific password for the price alert configuration.
 
 ## 3. Assumptions / Current limitations:
 - THE CSV FILES for discounts and prices are not duplicated: they had correct naming and there is no duplicated data.
@@ -255,12 +263,12 @@ Help users split their basket into shopping lists that optimise for cost savings
 
 Request body:
 ```json
-[
+
   {
     "date": "2025-05-13",
     "products": ["lapte zuzu", "cafea măcinată", "iaurt grecesc", "apa de izvor"]
   }
-]
+
 ```
 
 *Response Example:*
@@ -383,44 +391,6 @@ Request body:
 ]
 ```
 
-*Response Example:*
-```json
-[
-  {
-    "name": "spaghetti nr.5",
-    "discount": 20.0,
-    "brand": "Barilla",
-    "store": "lidl",
-    "currency": "RON",
-    "price_without_discount": 5.7
-  },
-  {
-    "name": "detergent lichid",
-    "discount": 20.0,
-    "brand": "Persil",
-    "store": "lidl",
-    "currency": "RON",
-    "price_without_discount": 49.5
-  },
-  {
-    "name": "spaghetti nr.5",
-    "discount": 18.0,
-    "brand": "Barilla",
-    "store": "kaufland",
-    "currency": "RON",
-    "price_without_discount": 5.85
-  },
-  {
-    "name": "detergent lichid",
-    "discount": 18.0,
-    "brand": "Dero",
-    "store": "profi",
-    "currency": "RON",
-    "price_without_discount": 48.9
-  },
-..........
-]
-```
 
 #### Implementation Details
 
@@ -452,7 +422,7 @@ The following components are used in the backend implementation, each located in
 List discounts that have been newly added (e.g., within the last 24 hours).
 
 **Request Example:**  
-`POST http://localhost:8080/rest/latest-discounts/on-date`
+  `POST http://localhost:8080/rest/latest-discounts/on-date`
 
 Request body:
 ```json
@@ -599,8 +569,8 @@ trends over time for individual products.
 The following components are used in the backend implementation, each located in their respective package:
 
 - `rest/DynamicPriceHistoryController` – processes the requests for the `/rest/latest-discounts/on-date` endpoint.
-- `service/features/dynamicPriceHistoryRepository` – applies the business logic
-- `dao/features/getDynamicPriceHistoryRepositoryByCategory` – accesses the database and performs the query using native SQL syntax for operation optimization
+- `service/features/dynamicPriceHistoryService` – applies the business logic
+- `dao/features/dynamicPriceHistoryRepository` – accesses the database and performs the query using native SQL syntax for operation optimization
   - The same logic applies as described in the database model: a product retains the price from its most recent `batch_date` up to the current date.
   - If a discount is active, the price is adjusted based on the most recent batch available at the start of the discount period, reflecting the product’s price evolution over time.
 - `dto/ProductPriceHistoryDto` – used for sending data in the response (smallest building block).
@@ -618,7 +588,7 @@ best buys, even if the pack size differs
 #### Usage
 
 **Request Example:**  
-`GET http://localhost:8080/rest/best-deals/on-date`
+`POST http://localhost:8080/rest/best-deals/on-date`
 
 Request body:
 ```json
@@ -752,10 +722,12 @@ The following components are used in the backend implementation, each located in
 
 ## Future Improvements ()
 
-- Refactor the duplicated code from class. DynamicPriceHistoryRepositoryImpl. The each of the 2 queryes has almost the same logic, id varies just the way data is filtered by category or by brand.
+
+
+- Refactor the duplicated code from the class DynamicPriceHistoryRepositoryImpl. Each of the two queries has almost the same logic; the only difference is how data is filtered — by category or by brand.
 
 - Write more unit tests.
 
-- Possible there would be a way for redesgning/refactor the way data is stored , the tables design- in order to have less verbouse queries - with the trade-off for a little bit more memory usage
+- Possibly, consider redesigning/refactoring the way data is stored (i.e. the table design), in order to have less verbose queries — with the trade-off of slightly increased memory usage.
 
-- Extend the database for better variety of products , shops and period of time. 
+- Extend the database to include a greater variety of products, shops, and a longer time period of price variations.

@@ -25,6 +25,11 @@ public class BestBuysPerUnitRepositoryImpl
     public List<BestDealsProductDto> getBestBuysPerUnit(
             LocalDate theDate) {
 
+        // This query is used to retrieve all products and compute the price per unit
+        // for each product on a specific shopping date.
+        // If a discount exists, the price will be reduced accordingly,
+        // using the price from the latest available product batch at that time.
+
         String sql = """
                 WITH discounted_prices AS (
                     SELECT
@@ -91,17 +96,17 @@ public class BestBuysPerUnitRepositoryImpl
                     String packageUnit = (String) row[5];
                     double valuePerUnit = ((Number) row[6]).doubleValue();
 
-                    // Conversii unități
+                    // The convert of the unit of package
                     if ("ml".equalsIgnoreCase(packageUnit)) {
                         packageQuantity = packageQuantity / 1000.0; // ml -> l
                         packageUnit = "l";
                         valuePerUnit = price /
-                                packageQuantity; // recalculare preț/unitate
+                                packageQuantity; // recompute price/unit
                     } else if ("g".equalsIgnoreCase(packageUnit)) {
                         packageQuantity = packageQuantity / 1000.0; // g -> kg
                         packageUnit = "kg";
                         valuePerUnit = price /
-                                packageQuantity; // recalculare preț/unitate
+                                packageQuantity; // recompute price/unit
                     }
 
                     return new BestDealsProductDto(

@@ -16,11 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class LatestDiscountsControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
+
     @Autowired
-    private ObjectMapper objectMapper;
+    public LatestDiscountsControllerTest(MockMvc mockMvc) {
+
+        this.mockMvc = mockMvc;
+    }
+
 
     @Test
     public void testLatestDiscountsControllerEndpoint() throws Exception {

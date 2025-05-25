@@ -33,17 +33,12 @@ public class BestPercentageDiscountsController {
             DateRequestDto request) {
 
 
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-
         LocalDate requestDate = request.getDate();
 
 
         List<ProductDiscountPercentageDto> response =
-                bestPercentageDiscountsService.getBestPercentageDiscountsByDate(requestDate);
+                bestPercentageDiscountsService.getBestPercentageDiscountsByDate(
+                        requestDate);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

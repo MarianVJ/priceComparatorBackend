@@ -3,11 +3,6 @@ package com.example.priceComparatorBackend.service.features;
 import com.example.priceComparatorBackend.dao.database.StoreDateBatchProductRepository;
 import com.example.priceComparatorBackend.dao.features.PriceAlertRepository;
 import com.example.priceComparatorBackend.entity.PriceAlert;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +12,7 @@ import java.util.List;
 @Service
 public class PriceAlertSchedulerServiceImpl
         implements PriceAlertSchedulerService {
-    @Autowired
-    private JavaMailSender javaMailSender;
+
 
     private final PriceAlertRepository priceAlertRepository;
     private final StoreDateBatchProductRepository
@@ -38,13 +32,10 @@ public class PriceAlertSchedulerServiceImpl
     @Scheduled(fixedRate = 300000 / 5)
     public void checkPriceAlerts() {
         List<PriceAlert> alerts = priceAlertRepository.findAll();
-        System.out.println("|||||||||||||||||||");
-        System.out.println("|||||||||||||||||||");
 
 
         for (PriceAlert alert : alerts) {
             Long productId = alert.getProduct().getId();
-
 
 
             // In a real-world application, the date would be obtained dynamically.
@@ -59,31 +50,14 @@ public class PriceAlertSchedulerServiceImpl
 
             if (currentPrice != null &&
                     currentPrice <= alert.getTargetPrice()) {
-                System.out.println("**********************************");
-                System.out.println("**********************************");
-                System.out.println("**********************************");
-                System.out.println("**********************************");
-                System.out.println("**********************************");
-                System.out.println("**********************************");
+
                 // Sends the notification to the user
-//                System.out.println(alert.getEmail());
-//                emailService.sendPriceAlertEmail(alert.getEmail(),
-//                        alert.getProduct().getName(),
-//                        currentPrice, alert.getTargetPrice());
+
+                emailService.sendPriceAlertEmail(alert.getEmail(),
+                        alert.getProduct().getName(),
+                        currentPrice, alert.getTargetPrice());
 
 
-                try{
-                MimeMessage message = javaMailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-                helper.setFrom("vlad_parcour@yahoo.com");  
-                helper.setTo("jorascuvlad@gmail.com");
-                helper.setSubject("Price Alert");
-                helper.setText("Alert message...");
-
-                javaMailSender.send(message);} catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
             }
         }
     }

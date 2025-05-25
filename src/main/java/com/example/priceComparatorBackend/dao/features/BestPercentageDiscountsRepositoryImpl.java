@@ -25,9 +25,10 @@ public class BestPercentageDiscountsRepositoryImpl
     @Override
     public List<ProductDiscountPercentageDto> getBestPercentageDiscountsByDate(
             LocalDate todayDate) {
-        // The query also has in mind that, if there are multiple active
-        // discounts at the todayDate, the one that will be choosed will be
-        // the one which has newer from_date value
+
+        // This query is used to retrieve the products with the highest discount percentage
+        // on a specific shopping date.
+        // The price returned will be the standard price, without the discount applied.
         String sql = """
                     WITH latest_discounts AS (
                         SELECT 

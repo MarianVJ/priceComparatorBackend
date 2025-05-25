@@ -16,11 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class BestBuysPerUnitControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private final MockMvc mockMvc;
+
+
 
     @Autowired
-    private ObjectMapper objectMapper;
+    public BestBuysPerUnitControllerTest(MockMvc mockMvc) {
+
+        this.mockMvc = mockMvc;
+    }
 
     @Test
     public void testBestBuysPerUnitControllerEndpoint() throws Exception {

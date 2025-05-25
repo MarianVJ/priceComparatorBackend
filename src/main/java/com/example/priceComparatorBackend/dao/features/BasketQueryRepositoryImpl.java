@@ -23,6 +23,11 @@ public class BasketQueryRepositoryImpl implements BasketQueryRepository {
     public List<ProductPriceDto> findCheapestProductsByStore(
             List<String> productNames,
             LocalDate shoppingDate) {
+
+        // This query is used to obtain the best price for each product on the
+        // specific shopping date.
+        // If a discount exists, the price will be reduced accordingly, using the price
+        // from the latest available product batch at that time.
         String sql = """
                 SELECT product_name,
                        store_name,
@@ -36,24 +41,27 @@ public class BasketQueryRepositoryImpl implements BasketQueryRepository {
                                ORDER BY ROUND(sdp.price * (1 - COALESCE(sdpd.percentage_of_discount, 0) / 100), 2) ASC
                            ) AS row_num
                     FROM store_date_batch_product sdp
-                    JOIN store_date_batch sdb ON sdb.store_date_batch_id = sdp.store_date_batch_id
+                    JOIN store_date_batch sdb ON sdp.store_date_batch_id = sdb.store_date_batch_id
                     JOIN store s ON s.store_id = sdb.store_id
                     JOIN product p ON p.product_id = sdp.product_id
+                
                     LEFT JOIN store_discount_date_batch sddb ON sddb.store_id = s.store_id
                                                              AND sddb.from_date <= :date
                                                              AND sddb.to_date >= :date
+                
                     LEFT JOIN store_discount_date_batch_product sdpd ON sdpd.store_discount_date_batch_id = sddb.store_discount_date_batch_id
                                                                       AND sdpd.product_id = p.product_id
+                
                     WHERE p.name IN (:names)
                       AND sdb.batch_date = (
                           SELECT MAX(sdb2.batch_date)
                           FROM store_date_batch sdb2
                           WHERE sdb2.store_id = s.store_id
-                            AND sdb2.batch_date <= sddb.from_date
+                            AND sdb2.batch_date <= COALESCE(sddb.from_date, :date)
                       )
                 ) AS ranked_products
                 WHERE row_num = 1
-                ORDER BY product_name ASC              
+                ORDER BY product_name ASC
                 """;
 
         List<Object[]> results = entityManager.createNativeQuery(sql)

@@ -16,11 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class BasketOptimizerControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+
+    private final MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    public BasketOptimizerControllerTest(MockMvc mockMvc) {
+
+        this.mockMvc = mockMvc;
+    }
+
 
     @Test
     public void testBasketOptimizerEndpoint() throws Exception {
