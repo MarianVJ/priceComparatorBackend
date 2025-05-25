@@ -2,6 +2,7 @@ package com.example.priceComparatorBackend.service.features;
 
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,9 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final JavaMailSender javaMailSender;
+
+    @Value("${spring.mail.username}")
+    private String senderEmail;
 
     @Autowired
     public EmailServiceImpl(JavaMailSender mailSender,
@@ -27,8 +31,8 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setFrom("vlad_parcour@yahoo.com");
-            helper.setTo("jorascuvlad@gmail.com");
+            helper.setFrom(senderEmail);
+            helper.setTo(toEmail);
             helper.setSubject("Price Alert" + productName);
             helper.setText("Good news! The price for product '" + productName +
                     "' has dropped to " + currentPrice +
