@@ -33,7 +33,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom(senderEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Price Alert" + productName);
+            helper.setSubject("Price Alert " + productName);
             helper.setText("Good news! The price for product '" + productName +
                     "' has dropped to " + currentPrice +
                     ", which is below your target price of " + targetPrice +

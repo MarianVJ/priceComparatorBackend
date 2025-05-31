@@ -1,6 +1,7 @@
-# Price Comparator - Spring Boot Backend Application
+ # Price Comparator - Spring Boot Backend Application
 
 
+Link to video demonstration: https://youtu.be/ihPRxaxtc8I
 
 ## Description
 
